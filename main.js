@@ -1,5 +1,7 @@
 var AM = new AssetManager();
-var playerOne, playerTwo;
+
+var pointA = 0;
+var pointB = 0;
 function Animation(spriteSheet, frameWidth, frameHeight, sheetWidth, frameDuration, frames, loop, scale) {
     this.spriteSheet = spriteSheet;
     this.frameWidth = frameWidth;
@@ -40,7 +42,6 @@ Animation.prototype.isDone = function () {
     return (this.elapsedTime >= this.totalTime);
 }
 
-// no inheritance
 function Background(game) {
     this.x = 0;
     this.y = 0;
@@ -49,8 +50,6 @@ function Background(game) {
 };
 
 Background.prototype.draw = function () {
-    // this.ctx.drawImage(this.spritesheet,
-    //     this.x, this.y, this.spritesheet.width, this.spritesheet.height);
     this.ctx.fillStyle = "blue";
     this.ctx.fillRect(0, 0, 1280, 720);
     this.ctx.clearRect(635, 0, 10, 50);
@@ -71,31 +70,12 @@ Background.prototype.update = function () {
 
 };
 
-function playerPanel(game) {
-    this.x = 50;
+function computerPanel(game, x) {
+    this.x = x;
     this.y = 50;
     this.game = game;
     this.ctx = game.ctx;
-    this.speed = 10;
-};
-
-playerPanel.prototype.draw = function () {
-    this.ctx.clearRect(this.x, this.y, 30, 150);
-};
-
-playerPanel.prototype.update = function () {
-    if (this.game.y > 0 && this.game.y < 720 - 150 ){
-        this.y = this.game.y;
-    }
-
-};
-
-function computerPanel(game) {
-    this.x = 1200;
-    this.y = 50;
-    this.game = game;
-    this.ctx = game.ctx;
-    this.speed = 9;
+    this.speed = 8.6;
 };
 
 computerPanel.prototype.draw = function () {
@@ -103,22 +83,25 @@ computerPanel.prototype.draw = function () {
 };
 
 computerPanel.prototype.update = function () {
-
 };
+
+
 
 function Ball(game, playerPanel, computerPanel) {
     this.x = 500;
     this.y = 500;
-    this.game = game;
     this.ctx = game.ctx;
     this.speedX = 10;
     this.speedY = 10;
-    this.player = playerPanel;
-    this.comp = computerPanel;
+    this.left = playerPanel;
+    this.right = computerPanel;
 };
 
 Ball.prototype.draw = function () {
-    this.ctx.clearRect(this.x, this.y, 20, 20);
+    this.ctx.beginPath();
+    this.ctx.fillStyle = "red";
+    this.ctx.arc(this.x,this.y,20,0,2*Math.PI);
+    this.ctx.fill();
 };
 
 Ball.prototype.update = function () {
@@ -128,36 +111,75 @@ Ball.prototype.update = function () {
     if (this.y >= 700 || this.y <= 0){
         this.speedY = -this.speedY;
     }
+
     if (this.x > 0 && this.x < 1260){
         this.x += this.speedX;
     } else{
-        alert("gameover");
+        if (this.x <= 0){
+            pointB++;
+        }
+        if (this.x >= 1260){
+            pointA++;
+        }
         this.x = 630;
-        this.y = 350;
+        this.y = 200;
+        if (Math.random() < 0.5){
+            this.speedX = -this.speedX;
+        }
+        if (pointA == 3){
+            alert("Left AI wins as " + pointA + " : " + pointB);
+            pointB = 0;
+            pointA = 0;
+        }
+        if (pointB == 3){
+            alert("Right AI wins as " + pointB + " : " + pointA);
+            pointB = 0;
+            pointA = 0;
+        }
     }
-    if (this.comp.x - this.x < 30  && this.comp.x - this.x > 0) {
-        if (this.y - this.comp.y < 150 && this.y - this.comp.y > 0){
+    if (this.right.x - this.x < 30  && this.right.x - this.x > 0) {
+        if (this.y - this.right.y < 150 && this.y - this.right.y > 0){
             this.speedX = -this.speedX;
         }
     }
-    if (this.x - this.player.x < 30  && this.x - this.player.x > 0) {
-        if (this.y - this.player.y < 150 && this.y - this.player.y > 0){
+    if (this.x - this.left.x < 50  && this.x - this.left.x > 0) {
+        if (this.y - this.left.y < 150 && this.y - this.left.y > 0){
             this.speedX = -this.speedX;
         }
     }
 
-    if (this.comp.y+75 > this.y){
-        this.comp.y -= this.comp.speed;
+    if (this.right.y+75 > this.y){
+        this.right.y -= this.right.speed;
     } else {
+        this.right.y += this.right.speed;
+    }
 
-        this.comp.y += this.comp.speed;
+    if (this.left.y+75 > this.y){
+        this.left.y -= this.left.speed;
+    } else {
+        this.left.y += this.left.speed;
     }
 };
 
+function Point(game) {
+    this.x = 500;
+    this.y = 500;
+    this.game = game;
+    this.ctx = game.ctx;
+};
 
+Point.prototype.draw = function () {
+    this.ctx.fillStyle = "red";
+    this.ctx.font = "40px Arial";
+    this.ctx.fillText(pointA + " : " + pointB,600,50);
+};
 
+Point.prototype.update = function () {
 
-AM.queueDownload("./img/background.jpg");
+};
+
+AM.queueDownload();
+
 
 AM.downloadAll(function () {
     var canvas = document.getElementById("gameWorld");
@@ -166,11 +188,11 @@ AM.downloadAll(function () {
     gameEngine.init(ctx);
     gameEngine.start();
     gameEngine.addEntity(new Background(gameEngine));
-    var p = new playerPanel(gameEngine);
-    var c = new computerPanel(gameEngine);
+    var p = new computerPanel(gameEngine, 50);
+    var c = new computerPanel(gameEngine, 1180);
     gameEngine.addEntity(p);
     gameEngine.addEntity(c);
     gameEngine.addEntity(new Ball(gameEngine, p, c));
-
+    gameEngine.addEntity(new Point(gameEngine));
     console.log("All Done!");
 });
