@@ -1,7 +1,11 @@
 var AM = new AssetManager();
-
+var socket = io.connect("http://76.28.150.193:8888");
 var pointA = 0;
 var pointB = 0;
+var panel1;
+var panel2;
+var ball;
+var point;
 function Animation(spriteSheet, frameWidth, frameHeight, sheetWidth, frameDuration, frames, loop, scale) {
     this.spriteSheet = spriteSheet;
     this.frameWidth = frameWidth;
@@ -45,7 +49,6 @@ Animation.prototype.isDone = function () {
 function Background(game) {
     this.x = 0;
     this.y = 0;
-    this.game = game;
     this.ctx = game.ctx;
 };
 
@@ -73,7 +76,6 @@ Background.prototype.update = function () {
 function computerPanel(game, x) {
     this.x = x;
     this.y = 50;
-    this.game = game;
     this.ctx = game.ctx;
     this.speed = 8.6;
 };
@@ -115,6 +117,16 @@ Ball.prototype.update = function () {
     if (this.x > 0 && this.x < 1260){
         this.x += this.speedX;
     } else{
+        if (pointA == 3){
+            alert("Left AI wins as " + pointA + " : " + pointB);
+            pointB = 0;
+            pointA = 0;
+        }
+        if (pointB == 3){
+            alert("Right AI wins as " + pointB + " : " + pointA);
+            pointB = 0;
+            pointA = 0;
+        }
         if (this.x <= 0){
             pointB++;
         }
@@ -125,16 +137,6 @@ Ball.prototype.update = function () {
         this.y = 200;
         if (Math.random() < 0.5){
             this.speedX = -this.speedX;
-        }
-        if (pointA == 3){
-            alert("Left AI wins as " + pointA + " : " + pointB);
-            pointB = 0;
-            pointA = 0;
-        }
-        if (pointB == 3){
-            alert("Right AI wins as " + pointB + " : " + pointA);
-            pointB = 0;
-            pointA = 0;
         }
     }
     if (this.right.x - this.x < 30  && this.right.x - this.x > 0) {
@@ -164,7 +166,6 @@ Ball.prototype.update = function () {
 function Point(game) {
     this.x = 500;
     this.y = 500;
-    this.game = game;
     this.ctx = game.ctx;
 };
 
@@ -179,20 +180,46 @@ Point.prototype.update = function () {
 };
 
 AM.queueDownload();
-
+socket.on("load", function (data) {
+    panel1.y = data["panel1y"];
+    panel2.y = data["panel2y"];
+    ball.x = data["ballx"];
+    ball.y = data["bally"];
+    pointA = data["pointA"];
+    pointB = data["pointB"];
+    ball.speedX = data["speedX"];
+    ball.speedY = data["speedY"];
+});
 
 AM.downloadAll(function () {
+    document.getElementById("saveButton").addEventListener("click", function () {
+        console.log(panel1.x);
+        socket.emit("save", { studentname: "qiucw", statename: "aState",
+            panel1y:panel1.y, panel2y:panel2.y,
+            ballx: ball.x, bally: ball.y,
+            pointA: pointA, pointB: pointB,
+            speedX: ball.speedX, speedY: ball.speedY
+        });
+        }
+    )
+    document.getElementById("loadButton").addEventListener("click", function () {
+        socket.emit("load", { studentname: "qiucw", statename: "aState"});
+        }
+    )
     var canvas = document.getElementById("gameWorld");
     var ctx = canvas.getContext("2d");
     var gameEngine = new GameEngine();
     gameEngine.init(ctx);
     gameEngine.start();
     gameEngine.addEntity(new Background(gameEngine));
-    var p = new computerPanel(gameEngine, 50);
-    var c = new computerPanel(gameEngine, 1180);
-    gameEngine.addEntity(p);
-    gameEngine.addEntity(c);
-    gameEngine.addEntity(new Ball(gameEngine, p, c));
-    gameEngine.addEntity(new Point(gameEngine));
+    panel1 = new computerPanel(gameEngine, 50);
+    panel2 = new computerPanel(gameEngine, 1180);
+    ball = new Ball(gameEngine, panel1, panel2);
+    point = new Point(gameEngine);
+    gameEngine.addEntity(panel1);
+    gameEngine.addEntity(panel2);
+    gameEngine.addEntity(ball);
+    gameEngine.addEntity(point);
     console.log("All Done!");
 });
+
