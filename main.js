@@ -139,18 +139,18 @@ Ball.prototype.update = function () {
             this.speedX = -this.speedX;
         }
     }
-    if (this.right.x - this.x < 30  && this.right.x - this.x > 0) {
+    if (this.right.x - this.x < 25  && this.right.x - this.x > 15) {
         if (this.y - this.right.y < 150 && this.y - this.right.y > 0){
             this.speedX = -this.speedX;
         }
     }
-    if (this.x - this.left.x < 50  && this.x - this.left.x > 0) {
+    if (this.x - this.left.x < 55  && this.x - this.left.x > 45) {
         if (this.y - this.left.y < 150 && this.y - this.left.y > 0){
             this.speedX = -this.speedX;
         }
     }
 
-    if (this.right.y+75 > this.y){
+    if (this.right.y + 75 > this.y){
         this.right.y -= this.right.speed;
     } else {
         this.right.y += this.right.speed;
