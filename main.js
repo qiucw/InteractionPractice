@@ -138,6 +138,8 @@ Ball.prototype.update = function () {
         }
         this.x = 630;
         this.y = 200;
+        this.left.y = 200;
+        this.right.y = 200;
 
     }
     if (this.right.x - this.x < 25  && this.right.x - this.x > 15) {
