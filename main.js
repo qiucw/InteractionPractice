@@ -77,7 +77,7 @@ function computerPanel(game, x) {
     this.x = x;
     this.y = 50;
     this.ctx = game.ctx;
-    this.speed = 8.6;
+    this.speed = 8;
 };
 
 computerPanel.prototype.draw = function () {
@@ -107,6 +107,16 @@ Ball.prototype.draw = function () {
 };
 
 Ball.prototype.update = function () {
+    if (pointA == 3){
+        alert("Left AI wins as " + pointA + " : " + pointB);
+        pointB = 0;
+        pointA = 0;
+    }
+    if (pointB == 3){
+        alert("Right AI wins as " + pointB + " : " + pointA);
+        pointB = 0;
+        pointA = 0;
+    }
     if (this.y >= 0 && this.y <= 700 ){
         this.y += this.speedY;
     }
@@ -117,15 +127,8 @@ Ball.prototype.update = function () {
     if (this.x > 0 && this.x < 1260){
         this.x += this.speedX;
     } else{
-        if (pointA == 3){
-            alert("Left AI wins as " + pointA + " : " + pointB);
-            pointB = 0;
-            pointA = 0;
-        }
-        if (pointB == 3){
-            alert("Right AI wins as " + pointB + " : " + pointA);
-            pointB = 0;
-            pointA = 0;
+        if (Math.random() < 0.5){
+            this.speedX = -this.speedX;
         }
         if (this.x <= 0){
             pointB++;
@@ -135,17 +138,15 @@ Ball.prototype.update = function () {
         }
         this.x = 630;
         this.y = 200;
-        if (Math.random() < 0.5){
-            this.speedX = -this.speedX;
-        }
+
     }
     if (this.right.x - this.x < 25  && this.right.x - this.x > 15) {
-        if (this.y - this.right.y < 150 && this.y - this.right.y > 0){
+        if (this.y - this.right.y < 164 && this.y - this.right.y > -14){
             this.speedX = -this.speedX;
         }
     }
     if (this.x - this.left.x < 55  && this.x - this.left.x > 45) {
-        if (this.y - this.left.y < 150 && this.y - this.left.y > 0){
+        if (this.y - this.left.y < 164 && this.y - this.left.y > -14){
             this.speedX = -this.speedX;
         }
     }
@@ -156,7 +157,7 @@ Ball.prototype.update = function () {
         this.right.y += this.right.speed;
     }
 
-    if (this.left.y+75 > this.y){
+    if (this.left.y + 75 > this.y){
         this.left.y -= this.left.speed;
     } else {
         this.left.y += this.left.speed;
